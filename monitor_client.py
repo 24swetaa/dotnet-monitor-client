@@ -1,37 +1,36 @@
 import requests
 import argparse
 import os
+import random
 
-def trigger_monitor_api(base_url, endpoint):
-    api_url = f"{base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+BASE_URL = 'http://localhost'
+
+def trigger_monitor_action(action):
+    api_url = f"{BASE_URL.rstrip('/')}/{action.lstrip('/')}"
     
     try:
         response = requests.get(api_url)
         response.raise_for_status()
 
-        content_type = response.headers.get('content-type')
+        # Generate a random number to append to the filename
+        random_number = random.randint(1, 100000)
 
-        if content_type and not content_type.startswith('text'):
-            # Save the response content to a file
-            filename = f"response_{endpoint.replace('/', '_')}"
-            with open(filename, 'wb') as file:
-                file.write(response.content)
-            print(f"Response saved to file: {filename}")
-        else:
-            # Print the response content
-            print('Response:', response.text)
+        # Save the response content to a text file with a random number appended to the filename
+        filename = f"response_{action.replace('/', '_')}_{random_number}.txt"
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write(response.text)
+        print(f"Response saved to file: {filename}")
 
     except requests.exceptions.RequestException as e:
         print('Error:', str(e))
 
 def main():
-    parser = argparse.ArgumentParser(description='Trigger .NET Monitor API endpoints.')
-    parser.add_argument('--base-url', required=True, help='Base URL of the target .NET application')
-    parser.add_argument('--endpoint', required=True, help='Endpoint of the .NET Monitor API to trigger')
+    parser = argparse.ArgumentParser(description='Trigger .NET Monitor actions.')
+    parser.add_argument('--action', required=True, help='Action to perform in the .NET Monitor')
 
     args = parser.parse_args()
 
-    trigger_monitor_api(args.base_url, args.endpoint)
+    trigger_monitor_action(args.action)
 
 if __name__ == '__main__':
     main()
