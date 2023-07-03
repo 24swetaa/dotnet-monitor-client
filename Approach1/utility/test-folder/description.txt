@@ -1,0 +1,2 @@
+This folder was created so that I can test that the utility program should not save the file in the directory where
+the file creation is not allowed.

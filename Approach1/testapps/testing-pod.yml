@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-test-app
+spec:
+  containers:
+    - name: test-app-container
+      image: ubuntu:latest
+      command: ["sleep", "3600"]
+      resources:
+        limits:
+          cpu: "500m"
+          memory: "256Mi"

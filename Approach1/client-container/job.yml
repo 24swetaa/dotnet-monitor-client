@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: client-monitor-job
+spec:
+  template:
+    metadata:
+      name: client-monitor-pod
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: client-monitor-container
+        image: client:v1
+        imagePullPolicy: Never
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: response-volume
+          mountPath: /app/response
+        env:
+        - name: ACTION
+          value: "processes"
+        - name: PODNAME
+          value: "deploy-dotnet-monitor-77c45ff464-dsgr4"
+        - name: NAMESPACE 
+          value: "default"
+        - name: UID
+          value: "NO_UID"
+        - name: PID
+          value: "NO_PID"
+        - name: NAME
+          value: "NO_NAME"
+        - name: DURATION
+          value: "NO_DURATION"
+        - name: EGRESS_PROVIDER
+          value: "NO_EGRESS_PROVIDER"
+        - name: TAGS
+          value: "NO_TAG"
+      volumes: 
+      - name: response-volume
+        emptyDir: {}
+
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 90
+# this section is created to give rbac(role based access control) on our cluster so that we can fetch pod ip address.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: default # your namespace
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default-pod-reader
+  namespace: default # your namespace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reader
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: default
